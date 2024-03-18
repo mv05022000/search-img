@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Search App</title>
+  <style>
+    /* CSS styles for UI */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    #searchInput {
+      width: calc(100% - 100px);
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px 0 0 5px;
+    }
+    #searchButton {
+      padding: 10px 20px;
+      background-color: #007bff;
+      border: none;
+      border-radius: 0 5px 5px 0;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #searchButton:hover {
+      background-color: #0056b3;
+    }
+    #imageGallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    .image-item {
+      position: relative;
+      overflow: hidden;
+      border-radius: 5px;
+    }
+    .image-item img {
+      width: 100%;
+      height: auto;
+      transition: transform 0.3s ease;
+    }
+    .image-item:hover img {
+      transform: scale(1.1);
+    }
+    .loading-indicator {
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <input type="text" id="searchInput" placeholder="Enter keywords...">
+    <button id="searchButton">Search</button>
+    <div id="imageGallery"></div>
+    <div id="loadingIndicator" class="loading-indicator" style="display: none;">Loading...</div>
+    <button id="showMoreButton" style="display: none;">Show More</button>
+  </div>
+
+  <script>
+    // JavaScript for API integration and functionality
+    const accessKey = ''; 
+
+    // Function to search for images
+    function searchImages() {
+      const query = document.getElementById('searchInput').value;
+      const imageGallery = document.getElementById('imageGallery');
+      const loadingIndicator = document.getElementById('loadingIndicator');
+
+      // Show loading indicator
+      loadingIndicator.style.display = 'block';
+      imageGallery.innerHTML = ''; // Clear previous images
+
+      fetch(`https://api.unsplash.com/search/photos?query=${query}&per_page=10&client_id=${accessKey}`)
+        .then(response => response.json())
+        .then(data => {
+          displayImages(data.results);
+          loadingIndicator.style.display = 'none'; // Hide loading indicator
+        })
+        .catch(error => {
+          console.error('Error fetching images:', error);
+          loadingIndicator.style.display = 'none'; // Hide loading indicator
+          alert('An error occurred while fetching images. Please try again later.');
+        });
+    }
+
+    // Function to display images in the gallery
+    function displayImages(images) {
+      const imageGallery = document.getElementById('imageGallery');
+
+      images.forEach(image => {
+        const imgElement = document.createElement('img');
+        imgElement.src = image.urls.small;
+        imgElement.alt = image.alt_description;
+
+        const imageItem = document.createElement('div');
+        imageItem.classList.add('image-item');
+        imageItem.appendChild(imgElement);
+
+        imageGallery.appendChild(imageItem);
+      });
+
+      document.getElementById('showMoreButton').style.display = 'block';
+    }
+
+    // Event listener for the search button
+    document.getElementById('searchButton').addEventListener('click', searchImages);
+
+    // Event listener for the "Show More" button
+    document.getElementById('showMoreButton').addEventListener('click', searchImages);
+
+    // Function to fetch more images when "Show More" button is clicked
+    function showMoreImages() {
+      const query = document.getElementById('searchInput').value;
+      const loadingIndicator = document.getElementById('loadingIndicator');
+
+      // Show loading indicator
+      loadingIndicator.style.display = 'block';
+
+      fetch(`https://api.unsplash.com/search/photos?query=${query}&per_page=20&client_id=${accessKey}`)
+        .then(response => response.json())
+        .then(data => {
+          displayImages(data.results);
+          loadingIndicator.style.display = 'none'; // Hide loading indicator
+        })
+        .catch(error => {
+          console.error('Error fetching more images:', error);
+          loadingIndicator.style.display = 'none'; // Hide loading indicator
+          alert('An error occurred while fetching more images. Please try again later.');
+        });
+    }
+  </script>
+</body>
+</html>
